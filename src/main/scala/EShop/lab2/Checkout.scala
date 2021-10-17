@@ -4,6 +4,7 @@ import EShop.lab2.Checkout._
 import akka.actor.{Actor, ActorRef, Cancellable, Props}
 import akka.event.{Logging, LoggingReceive}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -19,6 +20,7 @@ object Checkout {
   case class SelectDeliveryMethod(method: String) extends Command
   case object CancelCheckout                      extends Command
   case object ExpireCheckout                      extends Command
+
   case class SelectPayment(payment: String)       extends Command
   case object ExpirePayment                       extends Command
   case object ConfirmPaymentReceived              extends Command
@@ -32,21 +34,58 @@ object Checkout {
 class Checkout extends Actor {
 
   private val scheduler = context.system.scheduler
-  private val log       = Logging(context.system, this)
+  private val log = Logging(context.system, this)
+  val checkoutTimerDuration = 5 seconds
+  val paymentTimerDuration  = 5 seconds
 
-  val checkoutTimerDuration = 1 seconds
-  val paymentTimerDuration  = 1 seconds
+  private def scheduleCheckoutTimer: Cancellable =
+    scheduler.scheduleOnce(checkoutTimerDuration, self, ExpireCheckout)
 
-  def receive: Receive = ???
+  private def schedulePaymentTimer: Cancellable =
+    scheduler.scheduleOnce(paymentTimerDuration, self, ExpirePayment)
 
-  def selectingDelivery(timer: Cancellable): Receive = ???
+  def receive: Receive = LoggingReceive {
+    case StartCheckout =>
+      context become selectingDelivery(scheduleCheckoutTimer)
+  }
 
-  def selectingPaymentMethod(timer: Cancellable): Receive = ???
+  def selectingDelivery(timer: Cancellable): Receive = LoggingReceive {
+    case SelectDeliveryMethod(_) =>
+      timer.cancel()
+      context become selectingPaymentMethod(scheduleCheckoutTimer)
 
-  def processingPayment(timer: Cancellable): Receive = ???
+    case ExpireCheckout | CancelCheckout =>
+      timer.cancel()
+      context become cancelled
+  }
 
-  def cancelled: Receive = ???
+  def selectingPaymentMethod(timer: Cancellable): Receive = LoggingReceive {
+    case SelectPayment(_) =>
+      timer.cancel()
+      context become processingPayment(schedulePaymentTimer)
 
-  def closed: Receive = ???
+    case ExpireCheckout | CancelCheckout =>
+      timer.cancel()
+      context become cancelled
+  }
 
+  def processingPayment(timer: Cancellable): Receive = LoggingReceive {
+    case ExpirePayment | CancelCheckout =>
+      timer.cancel()
+      context become cancelled
+
+    case ConfirmPaymentReceived =>
+      timer.cancel()
+      context become closed
+  }
+
+  def cancelled: Receive = LoggingReceive{
+    case _ =>
+      context.stop(self)
+  }
+
+  def closed: Receive = LoggingReceive{
+    case _ =>
+      context.stop(self)
+  }
 }
