@@ -20,4 +20,4 @@ project/plugins/project/
 .metals
 metals.sbt
 .vscode
-
+.bsp
