@@ -21,9 +21,9 @@ object Checkout {
   case object CancelCheckout                      extends Command
   case object ExpireCheckout                      extends Command
 
-  case class SelectPayment(payment: String)       extends Command
-  case object ExpirePayment                       extends Command
-  case object ConfirmPaymentReceived              extends Command
+  case class SelectPayment(payment: String) extends Command
+  case object ExpirePayment                 extends Command
+  case object ConfirmPaymentReceived        extends Command
 
   sealed trait Event
   case object CheckOutClosed                   extends Event
@@ -33,8 +33,8 @@ object Checkout {
 
 class Checkout extends Actor {
 
-  private val scheduler = context.system.scheduler
-  private val log = Logging(context.system, this)
+  private val scheduler     = context.system.scheduler
+  private val log           = Logging(context.system, this)
   val checkoutTimerDuration = 5 seconds
   val paymentTimerDuration  = 5 seconds
 
@@ -79,12 +79,12 @@ class Checkout extends Actor {
       context become closed
   }
 
-  def cancelled: Receive = LoggingReceive{
+  def cancelled: Receive = LoggingReceive {
     case _ =>
       context.stop(self)
   }
 
-  def closed: Receive = LoggingReceive{
+  def closed: Receive = LoggingReceive {
     case _ =>
       context.stop(self)
   }
