@@ -1,7 +1,6 @@
 package EShop.lab3
 
-import EShop.lab2.TypedCheckout
-import EShop.lab3.Payment.Event
+import EShop.lab2.Checkout
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 
@@ -17,7 +16,7 @@ object Payment {
 class Payment(
   method: String,
   orderManager: ActorRef[Any],
-  checkout: ActorRef[TypedCheckout.Command]
+  checkout: ActorRef[Checkout.Command]
 ) {
 
   import Payment._
@@ -26,7 +25,7 @@ class Payment(
     Behaviors.receiveMessage {
       case DoPayment =>
         orderManager ! PaymentReceived
-        checkout ! TypedCheckout.ConfirmPaymentReceived
+        checkout ! Checkout.ConfirmPaymentReceived
         Behaviors.stopped
 
       case _ =>
