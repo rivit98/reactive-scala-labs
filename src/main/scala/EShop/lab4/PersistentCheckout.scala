@@ -1,6 +1,6 @@
 package EShop.lab4
 
-import EShop.lab2.CartActor
+import EShop.lab2.TypedCartActor
 import EShop.lab3.Payment
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
@@ -12,14 +12,14 @@ import scala.concurrent.duration._
 
 class PersistentCheckout {
 
-  import EShop.lab2.Checkout._
+  import EShop.lab2.TypedCheckout._
 
   val timerDuration: FiniteDuration = 1.seconds
 
   def schedule(context: ActorContext[Command], message: Command): Cancellable =
     context.scheduleOnce(timerDuration, context.self, message)
 
-  def apply(cartActor: ActorRef[CartActor.Event], persistenceId: PersistenceId): Behavior[Command] =
+  def apply(cartActor: ActorRef[TypedCartActor.Event], persistenceId: PersistenceId): Behavior[Command] =
     Behaviors.setup { context =>
       EventSourcedBehavior(
         persistenceId,
@@ -31,7 +31,7 @@ class PersistentCheckout {
 
   def commandHandler(
     context: ActorContext[Command],
-    cartActor: ActorRef[CartActor.Event]
+    cartActor: ActorRef[TypedCartActor.Event]
   ): (State, Command) => Effect[Event, State] =
     (state, command) => {
       state match {
@@ -78,7 +78,7 @@ class PersistentCheckout {
               Effect.persist(CheckoutCancelled)
 
             case ConfirmPaymentReceived =>
-              Effect.persist(CheckOutClosed).thenReply(cartActor)(_ => CartActor.CheckoutClosed)
+              Effect.persist(CheckOutClosed).thenReply(cartActor)(_ => TypedCartActor.CheckoutClosed)
 
             case _ =>
               Effect.unhandled

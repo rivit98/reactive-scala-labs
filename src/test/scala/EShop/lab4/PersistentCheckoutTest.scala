@@ -1,6 +1,6 @@
 package EShop.lab4
 
-import EShop.lab2.CartActor
+import EShop.lab2.TypedCartActor
 import EShop.lab3.OrderManager
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit
@@ -20,9 +20,9 @@ class PersistentCheckoutTest
 
   override def afterAll: Unit = testKit.shutdownTestKit()
 
-  import EShop.lab2.Checkout._
+  import EShop.lab2.TypedCheckout._
 
-  private val cartActorProbe = testKit.createTestProbe[CartActor.Event]()
+  private val cartActorProbe = testKit.createTestProbe[TypedCartActor.Event]()
 
   private val orderManagerProbe = testKit.createTestProbe[Any]
 

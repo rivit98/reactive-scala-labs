@@ -1,6 +1,6 @@
 package EShop.lab2
 
-import EShop.lab2.Checkout.CheckOutClosed
+import EShop.lab2.TypedCheckout.CheckOutClosed
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -8,19 +8,19 @@ import akka.actor.typed.{ActorRef, Behavior}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-object CartActor {
+object TypedCartActor {
 
   sealed trait Command
   case class AddItem(item: Any)                                             extends Command
   case class RemoveItem(item: Any)                                          extends Command
   case object ExpireCart                                                    extends Command
-  case class StartCheckout(orderManagerAdapter: ActorRef[CartActor.Event]) extends Command
+  case class StartCheckout(orderManagerAdapter: ActorRef[TypedCartActor.Event]) extends Command
   case object ConfirmCheckoutCancelled                                      extends Command
   case object ConfirmCheckoutClosed                                         extends Command
   case class GetItems(sender: ActorRef[Cart])                               extends Command
 
   sealed trait Event
-  case class CheckoutStarted(checkoutRef: ActorRef[Checkout.Command]) extends Event
+  case class CheckoutStarted(checkoutRef: ActorRef[TypedCheckout.Command]) extends Event
   case class ItemAdded(item: Any)                                          extends Event
   case class ItemRemoved(item: Any)                                        extends Event
   case object CartEmptied                                                  extends Event
@@ -38,18 +38,18 @@ object CartActor {
   case class InCheckout(cart: Cart)                   extends State(None)
 }
 
-class CartActor {
+class TypedCartActor {
 
-  import CartActor._
+  import TypedCartActor._
 
   val cartTimerDuration: FiniteDuration = 5 seconds
 
-  private def scheduleTimer(context: ActorContext[CartActor.Command]): Cancellable =
+  private def scheduleTimer(context: ActorContext[TypedCartActor.Command]): Cancellable =
     context.scheduleOnce(cartTimerDuration, context.self, ExpireCart)
 
-  def start: Behavior[CartActor.Command] = empty
+  def start: Behavior[TypedCartActor.Command] = empty
 
-  def empty: Behavior[CartActor.Command] = Behaviors.receive { (context, msg) =>
+  def empty: Behavior[TypedCartActor.Command] = Behaviors.receive { (context, msg) =>
     {
       msg match {
         case AddItem(item) =>
@@ -65,7 +65,7 @@ class CartActor {
     }
   }
 
-  def nonEmpty(cart: Cart, timer: Cancellable): Behavior[CartActor.Command] = Behaviors.receive { (context, msg) =>
+  def nonEmpty(cart: Cart, timer: Cancellable): Behavior[TypedCartActor.Command] = Behaviors.receive { (context, msg) =>
     {
       msg match {
         case AddItem(item) =>
@@ -85,14 +85,14 @@ class CartActor {
           empty
 
         case StartCheckout(orderManagerAdapter) =>
-          val checkoutEventAdapter: ActorRef[Checkout.Event] =
+          val checkoutEventAdapter: ActorRef[TypedCheckout.Event] =
             context.messageAdapter {
               case CheckOutClosed => ConfirmCheckoutClosed
             }
 
           timer.cancel()
-          val checkoutActor = context.spawn(new Checkout(checkoutEventAdapter).start, "checkoutActor")
-          checkoutActor ! Checkout.StartCheckout
+          val checkoutActor = context.spawn(new TypedCheckout(checkoutEventAdapter).start, "checkoutActor")
+          checkoutActor ! TypedCheckout.StartCheckout
           orderManagerAdapter ! CheckoutStarted(checkoutActor)
 
           inCheckout(cart)
@@ -107,7 +107,7 @@ class CartActor {
     }
   }
 
-  def inCheckout(cart: Cart): Behavior[CartActor.Command] = Behaviors.receive { (context, msg) =>
+  def inCheckout(cart: Cart): Behavior[TypedCartActor.Command] = Behaviors.receive { (context, msg) =>
     {
       msg match {
         case ConfirmCheckoutClosed =>

@@ -1,6 +1,6 @@
 package EShop.lab4
 
-import EShop.lab2.CartActor
+import EShop.lab2.TypedCartActor
 import EShop.lab3.OrderManager
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit
@@ -20,7 +20,7 @@ class PersistentCartActorTest
 
   override def afterAll: Unit = testKit.shutdownTestKit()
 
-  import EShop.lab2.CartActor._
+  import EShop.lab2.TypedCartActor._
 
   private val eventSourcedTestKit =
     EventSourcedBehaviorTestKit[Command, Event, State](
@@ -76,7 +76,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     resultStartCheckout.event.isInstanceOf[CheckoutStarted] shouldBe true
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
@@ -89,7 +89,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     resultStartCheckout.event.isInstanceOf[CheckoutStarted] shouldBe true
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
@@ -108,7 +108,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     resultStartCheckout.event.isInstanceOf[CheckoutStarted] shouldBe true
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
@@ -127,7 +127,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     resultStartCheckout.event.isInstanceOf[CheckoutStarted] shouldBe true
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
@@ -140,7 +140,7 @@ class PersistentCartActorTest
 
   it should "not change state to inCheckout from empty" in {
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     resultStartCheckout.hasNoEvents shouldBe true
     resultStartCheckout.state shouldBe Empty
@@ -186,7 +186,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
 
     eventSourcedTestKit.restart()
@@ -198,7 +198,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
 
     val resultCancelCheckout =
@@ -214,7 +214,7 @@ class PersistentCartActorTest
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
     val resultStartCheckout =
-      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[CartActor.Event]().ref))
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
 
     val resultCloseCheckout =

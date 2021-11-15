@@ -1,7 +1,7 @@
 package EShop.lab4
 
-import EShop.lab2.Checkout
-import EShop.lab2.Checkout.CheckOutClosed
+import EShop.lab2.TypedCheckout
+import EShop.lab2.TypedCheckout.CheckOutClosed
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 class PersistentCartActor {
 
-  import EShop.lab2.CartActor._
+  import EShop.lab2.TypedCartActor._
 
   val cartTimerDuration: FiniteDuration = 5.seconds
 
@@ -60,20 +60,20 @@ class PersistentCartActor {
               Effect.persist(CartExpired)
 
             case StartCheckout(orderManagerAdapter) =>
-              val checkoutEventAdapter: ActorRef[Checkout.Event] =
+              val checkoutEventAdapter: ActorRef[TypedCheckout.Event] =
                 context.messageAdapter {
                   case CheckOutClosed => ConfirmCheckoutClosed
                 }
 
               val checkoutActor = context.spawn(
-                new Checkout(checkoutEventAdapter).start,
+                new TypedCheckout(checkoutEventAdapter).start,
                 "checkoutActor"
               )
 
               Effect
                 .persist(CheckoutStarted(checkoutActor))
                 .thenRun { _ =>
-                  checkoutActor ! Checkout.StartCheckout
+                  checkoutActor ! TypedCheckout.StartCheckout
                   orderManagerAdapter ! CheckoutStarted(checkoutActor)
                 }
 
