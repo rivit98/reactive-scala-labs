@@ -2,6 +2,7 @@ package EShop.lab2
 
 import EShop.lab2.TypedCheckout.Event
 import EShop.lab3.Payment
+import EShop.lab3.{OrderManager, Payment}
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -21,7 +22,9 @@ object TypedCheckout {
   )                                  extends Command
   case object ExpirePayment          extends Command
   case object ConfirmPaymentReceived extends Command
-
+  case object PaymentRejected                                                                extends Command
+  case object PaymentRestarted  
+  
   sealed trait Event
   case object CheckOutClosed                                    extends Event
   case class PaymentStarted(payment: ActorRef[Payment.Command]) extends Event
