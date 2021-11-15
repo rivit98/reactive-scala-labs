@@ -1,6 +1,6 @@
 package EShop.lab3
 
-import EShop.lab2.{Cart, TypedCartActor}
+import EShop.lab2.{Cart, CartActor}
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, ScalaTestWithActorTestKit, TestInbox}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
@@ -19,13 +19,13 @@ class TypedCartTest
   override def afterAll: Unit =
     testKit.shutdownTestKit()
 
-  import TypedCartActor._
+  import CartActor._
 
   //use GetItems command which was added to make test easier
 
   //async
   it should "add item properly" in {
-    val cartActor = testKit.spawn(new TypedCartActor().start)
+    val cartActor = testKit.spawn(new CartActor().start)
     val probe     = testKit.createTestProbe[Cart]()
     cartActor ! AddItem("item1")
     cartActor ! GetItems(probe.ref)
@@ -34,7 +34,7 @@ class TypedCartTest
 
   // synchronous test
   it should "be empty after adding and removing the same item" in {
-    val testKit = BehaviorTestKit(new TypedCartActor().start)
+    val testKit = BehaviorTestKit(new CartActor().start)
     val inbox   = TestInbox[Cart]()
     testKit.run(AddItem("item1"))
     testKit.run(RemoveItem("item1"))
@@ -44,11 +44,11 @@ class TypedCartTest
 
   //async
   it should "start checkout" in {
-    val cartActor = testKit.spawn(new TypedCartActor().start)
+    val cartActor = testKit.spawn(new CartActor().start)
     val probe     = testKit.createTestProbe[Any]()
     cartActor ! AddItem("item1")
     cartActor ! StartCheckout(probe.ref)
-    probe.expectMessageType[TypedCartActor.Event]
+    probe.expectMessageType[CartActor.Event]
   }
 }
 

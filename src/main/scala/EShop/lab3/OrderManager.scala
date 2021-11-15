@@ -1,9 +1,8 @@
 package EShop.lab3
 
-import EShop.lab2
-import EShop.lab2.TypedCartActor.CheckoutStarted
-import EShop.lab2.TypedCheckout.PaymentStarted
-import EShop.lab2.{TypedCartActor, TypedCheckout}
+import EShop.lab2.CartActor.CheckoutStarted
+import EShop.lab2.Checkout.PaymentStarted
+import EShop.lab2.{CartActor, Checkout}
 import EShop.lab3.Payment.PaymentReceived
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
@@ -16,7 +15,7 @@ object OrderManager {
   case class SelectDeliveryAndPaymentMethod(delivery: String, payment: String, sender: ActorRef[Ack]) extends Command
   case class Buy(sender: ActorRef[Ack])                                                               extends Command
   case class Pay(sender: ActorRef[Ack])                                                               extends Command
-  case class ConfirmCheckoutStarted(checkoutRef: ActorRef[TypedCheckout.Command])                     extends Command
+  case class ConfirmCheckoutStarted(checkoutRef: ActorRef[Checkout.Command])                     extends Command
   case class ConfirmPaymentStarted(paymentRef: ActorRef[Payment.Command])                             extends Command
   case object ConfirmPaymentReceived                                                                  extends Command
 
@@ -32,29 +31,29 @@ class OrderManager {
 
   def uninitialized: Behavior[OrderManager.Command] =
     Behaviors.setup { context =>
-      val cartActor = context.spawn(new TypedCartActor().start, "cartActor")
+      val cartActor = context.spawn(new CartActor().start, "cartActor")
       open(cartActor)
     }
 
-  def open(cartActor: ActorRef[TypedCartActor.Command]): Behavior[OrderManager.Command] =
+  def open(cartActor: ActorRef[CartActor.Command]): Behavior[OrderManager.Command] =
     Behaviors.receive { (context, msg) =>
       msg match {
         case AddItem(id, sender) =>
-          cartActor ! TypedCartActor.AddItem(id)
+          cartActor ! CartActor.AddItem(id)
           sender ! Done
           open(cartActor)
 
         case RemoveItem(id, sender) =>
-          cartActor ! TypedCartActor.RemoveItem(id)
+          cartActor ! CartActor.RemoveItem(id)
           sender ! Done
           open(cartActor)
 
         case Buy(sender) =>
-          val cartEventAdapter: ActorRef[TypedCartActor.Event] =
+          val cartEventAdapter: ActorRef[CartActor.Event] =
             context.messageAdapter {
               case CheckoutStarted(checkoutRef) => ConfirmCheckoutStarted(checkoutRef)
             }
-          cartActor ! TypedCartActor.StartCheckout(cartEventAdapter)
+          cartActor ! CartActor.StartCheckout(cartEventAdapter)
           sender ! Done
           inCheckout(cartActor, sender)
 
@@ -64,8 +63,8 @@ class OrderManager {
     }
 
   def inCheckout(
-    cartActorRef: ActorRef[TypedCartActor.Command],
-    senderRef: ActorRef[Ack]
+                  cartActorRef: ActorRef[CartActor.Command],
+                  senderRef: ActorRef[Ack]
   ): Behavior[OrderManager.Command] =
     Behaviors.withStash(100) { buffer =>
       Behaviors.receiveMessage {
@@ -78,7 +77,7 @@ class OrderManager {
       }
     }
 
-  def inCheckout(checkoutActorRef: ActorRef[TypedCheckout.Command]): Behavior[OrderManager.Command] =
+  def inCheckout(checkoutActorRef: ActorRef[Checkout.Command]): Behavior[OrderManager.Command] =
     Behaviors.receive { (context, msg) =>
       val checkoutEventAdapter: ActorRef[Any] =
         context.messageAdapter {
@@ -88,8 +87,8 @@ class OrderManager {
 
       msg match {
         case SelectDeliveryAndPaymentMethod(delivery, payment, sender) =>
-          checkoutActorRef ! TypedCheckout.SelectDeliveryMethod(delivery)
-          checkoutActorRef ! TypedCheckout.SelectPayment(payment, checkoutEventAdapter)
+          checkoutActorRef ! Checkout.SelectDeliveryMethod(delivery)
+          checkoutActorRef ! Checkout.SelectPayment(payment, checkoutEventAdapter)
           sender ! Done
           inPayment(sender)
 

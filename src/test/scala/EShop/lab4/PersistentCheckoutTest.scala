@@ -1,6 +1,6 @@
 package EShop.lab4
 
-import EShop.lab2.TypedCartActor
+import EShop.lab2.CartActor
 import EShop.lab3.OrderManager
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit
@@ -20,9 +20,9 @@ class PersistentCheckoutTest
 
   override def afterAll: Unit = testKit.shutdownTestKit()
 
-  import EShop.lab2.TypedCheckout._
+  import EShop.lab2.Checkout._
 
-  private val cartActorProbe = testKit.createTestProbe[TypedCartActor.Command]()
+  private val cartActorProbe = testKit.createTestProbe[CartActor.Event]()
 
   private val orderManagerProbe = testKit.createTestProbe[Any]
 
@@ -236,5 +236,20 @@ class PersistentCheckoutTest
 
     resultCancelCheckout.hasNoEvents shouldBe true
     resultCancelCheckout.state shouldBe Closed
+  }
+
+  it should "restore checkout state test when during the checkout operation, the app is stopped" in {
+    val resultStartCheckout = eventSourcedTestKit.runCommand(StartCheckout)
+
+    resultStartCheckout.event shouldBe CheckoutStarted
+    resultStartCheckout.state.isInstanceOf[SelectingDelivery] shouldBe true
+
+    eventSourcedTestKit.restart()
+
+    eventSourcedTestKit.getState().isInstanceOf[SelectingDelivery] shouldBe true
+
+    Thread.sleep(2000)
+
+    eventSourcedTestKit.getState() shouldBe Cancelled
   }
 }
