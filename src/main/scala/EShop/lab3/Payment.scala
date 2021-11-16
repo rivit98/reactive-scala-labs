@@ -4,7 +4,7 @@ import EShop.lab2.TypedCheckout
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 
-object Payment {
+object PaymentOld {
 
   sealed trait Command
   case object DoPayment extends Command
@@ -13,15 +13,15 @@ object Payment {
   case object PaymentReceived extends Event
 }
 
-class Payment(
+class PaymentOld(
   method: String,
   orderManager: ActorRef[Any],
   checkout: ActorRef[TypedCheckout.Command]
 ) {
 
-  import Payment._
+  import PaymentOld._
 
-  def start: Behavior[Payment.Command] =
+  def start: Behavior[PaymentOld.Command] =
     Behaviors.receiveMessage {
       case DoPayment =>
         orderManager ! PaymentReceived

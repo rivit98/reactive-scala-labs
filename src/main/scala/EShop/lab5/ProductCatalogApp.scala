@@ -1,13 +1,12 @@
 package EShop.lab5
 
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import com.typesafe.config.ConfigFactory
 
 import java.net.URI
 import java.util.zip.GZIPInputStream
-import com.typesafe.config.ConfigFactory
-
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.io.Source

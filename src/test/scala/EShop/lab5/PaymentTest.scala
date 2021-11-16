@@ -2,8 +2,7 @@ package EShop.lab5
 
 import EShop.lab2.TypedCheckout
 import EShop.lab3.OrderManager
-import EShop.lab3.Payment.DoPayment
-import PaymentServiceServer.PaymentServiceServer
+import PaymentServiceServer.{PaymentServiceServer, PaymentServiceServerApp}
 import akka.actor.ActorSystem
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
@@ -17,7 +16,7 @@ import scala.concurrent.Future
 class PaymentTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike {
 
   it should "properly confirm payment after 2 retries using payu payment method" in {
-    val manager  = testKit.createTestProbe[OrderManager.Command]()
+    val manager  = testKit.createTestProbe[Any]()
     val checkout = testKit.createTestProbe[TypedCheckout.Command]()
     val payment  = testKit.spawn(Payment("payu", manager.ref, checkout.ref))
 
@@ -28,13 +27,13 @@ class PaymentTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike {
 
     payment ! Payment.DoPayment
 
-    manager.expectMessage(OrderManager.ConfirmPaymentReceived)
+    manager.expectMessage(Payment.PaymentReceived)
 
     server.system.terminate()
   }
 
   it should "stop the payment process if the client request results in NotFound" in {
-    val manager  = testKit.createTestProbe[OrderManager.Command]()
+    val manager  = testKit.createTestProbe[Any]()
     val checkout = testKit.createTestProbe[TypedCheckout.Command]()
     val payment  = testKit.spawn(Payment("notfound", manager.ref, checkout.ref))
 
