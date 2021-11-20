@@ -51,4 +51,3 @@ class TypedCartTest
     probe.expectMessageType[TypedCartActor.Event]
   }
 }
-

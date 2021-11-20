@@ -1,11 +1,18 @@
 [
   {
-    "work": "first work to do"
+    "work": "first work to do",
+    "brandId": "handi-snack"
   },
   {
-    "work": "some other work to do"
+    "work": "some other work to do",
+    "brandId": "isadora"
   },
   {
-    "work": "yet another"
+    "work": "yet another",
+    "brandId": "nailene"
+  },
+  {
+    "work": "yet another 2",
+    "brandId": "gerber"
   }
 ]
