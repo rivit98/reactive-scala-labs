@@ -1,8 +1,7 @@
 package EShop.lab2
 
 import EShop.lab2.TypedCheckout.Event
-import EShop.lab3.Payment
-import EShop.lab3.{OrderManager, Payment}
+import EShop.lab5.Payment
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -27,7 +26,7 @@ object TypedCheckout {
   
   sealed trait Event
   case object CheckOutClosed                                    extends Event
-  case class PaymentStarted(payment: ActorRef[Payment.Command]) extends Event
+  case class PaymentStarted(payment: ActorRef[Payment.Message]) extends Event
   case object CheckoutStarted                                   extends Event
   case object CheckoutCancelled                                 extends Event
   case class DeliveryMethodSelected(method: String)             extends Event
@@ -88,7 +87,7 @@ class TypedCheckout(
             timer.cancel()
 
             val paymentActor =
-              context.spawn(new Payment(payment, orderManagerAdapter, context.self).start, "paymentActor")
+              context.spawn(Payment(payment, orderManagerAdapter, context.self), "paymentActor")
             orderManagerAdapter ! PaymentStarted(paymentActor)
 
             processingPayment(schedulePaymentTimer(context))

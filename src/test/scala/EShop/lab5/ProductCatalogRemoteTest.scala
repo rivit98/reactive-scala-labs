@@ -10,6 +10,8 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 class ProductCatalogRemoteTest extends AsyncFlatSpecLike with Matchers {
@@ -17,6 +19,12 @@ class ProductCatalogRemoteTest extends AsyncFlatSpecLike with Matchers {
   implicit val timeout: Timeout = 3.second
 
   "A remote Product Catalog" should "return search results" in {
+    val server = new ProductCatalogAkkaHttpServer()
+
+    Future {
+      server.start(9000)
+    }(ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor()))
+
     val config = ConfigFactory.load()
 
     val actorSystem =
@@ -28,7 +36,7 @@ class ProductCatalogRemoteTest extends AsyncFlatSpecLike with Matchers {
     implicit val scheduler = anotherActorSystem.scheduler
 
     // wait for the cluster to form up
-    Thread.sleep(3000)
+    Thread.sleep(5000)
 
     val listingFuture = anotherActorSystem.receptionist.ask(
       (ref: ActorRef[Receptionist.Listing]) => Receptionist.find(ProductCatalog.ProductCatalogServiceKey, ref)
@@ -40,6 +48,7 @@ class ProductCatalogRemoteTest extends AsyncFlatSpecLike with Matchers {
       items <- productCatalog.ask(ref => GetItems("gerber", List("cream"), ref)).mapTo[ProductCatalog.Items]
       _ = actorSystem.terminate()
       _ = anotherActorSystem.terminate()
+      _ = server.system.terminate()
     } yield {
       assert(items.items.size == 10)
     }

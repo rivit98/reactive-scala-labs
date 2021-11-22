@@ -1,7 +1,7 @@
 package EShop.lab4
 
 import EShop.lab2.TypedCartActor
-import EShop.lab3.Payment
+import EShop.lab5.Payment
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -59,7 +59,7 @@ class PersistentCheckout {
           command match {
             case SelectPayment(payment, orderManagerAdapter) =>
               val paymentActor =
-                context.spawn(new Payment(payment, orderManagerAdapter, context.self).start, "paymentActor")
+                context.spawn(Payment(payment, orderManagerAdapter, context.self), "paymentActor")
 
               Effect
                 .persist(PaymentStarted(paymentActor))
