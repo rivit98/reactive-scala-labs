@@ -1,7 +1,13 @@
 package EShop.lab3
 
 import EShop.lab2.{TypedCartActor, TypedCheckout}
-import EShop.lab2.TypedCheckout.{ConfirmPaymentReceived, PaymentStarted, SelectDeliveryMethod, SelectPayment, StartCheckout}
+import EShop.lab2.TypedCheckout.{
+  ConfirmPaymentReceived,
+  PaymentStarted,
+  SelectDeliveryMethod,
+  SelectPayment,
+  StartCheckout
+}
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -19,9 +25,9 @@ class TypedCheckoutTest
     testKit.shutdownTestKit()
 
   it should "send close confirmation to cart" in {
-    val cartProbe     = testKit.createTestProbe[TypedCheckout.Event]()
+    val cartProbe         = testKit.createTestProbe[TypedCheckout.Event]()
     val orderManagerProbe = testKit.createTestProbe[Any]()
-    val checkoutActor = testKit.spawn(new TypedCheckout(cartProbe.ref).start)
+    val checkoutActor     = testKit.spawn(new TypedCheckout(cartProbe.ref).start)
 
     checkoutActor ! StartCheckout
     checkoutActor ! SelectDeliveryMethod("delivery_method")

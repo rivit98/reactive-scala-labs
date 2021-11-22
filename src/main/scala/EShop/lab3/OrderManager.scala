@@ -66,8 +66,8 @@ class OrderManager {
     }
 
   def inCheckout(
-                  cartActorRef: ActorRef[TypedCartActor.Command],
-                  senderRef: ActorRef[Ack]
+    cartActorRef: ActorRef[TypedCartActor.Command],
+    senderRef: ActorRef[Ack]
   ): Behavior[OrderManager.Command] =
     Behaviors.withStash(100) { buffer =>
       Behaviors.receiveMessage {
@@ -85,7 +85,7 @@ class OrderManager {
       val checkoutEventAdapter: ActorRef[Any] =
         context.messageAdapter {
           case PaymentStarted(paymentRef) => ConfirmPaymentStarted(paymentRef)
-          case PaymentReceived => ConfirmPaymentReceived
+          case PaymentReceived            => ConfirmPaymentReceived
         }
 
       msg match {

@@ -160,7 +160,6 @@ class PersistentCartActorTest
     resultAdd2.state shouldBe Empty
   }
 
-  
   it should "contain one item after adding item and restarting" in {
     val result = eventSourcedTestKit.runCommand(AddItem("Hamlet"))
 

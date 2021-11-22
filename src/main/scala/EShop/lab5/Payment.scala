@@ -25,25 +25,27 @@ object Payment {
     checkout: ActorRef[TypedCheckout.Command]
   ): Behavior[Message] =
     Behaviors
-      .receive[Message]((context, msg) =>
-        msg match {
-          case DoPayment =>
-            val paymentServiceAdapter: ActorRef[PaymentService.Response] =
-              context.messageAdapter {
-                case PaymentSucceeded =>
-                  WrappedPaymentServiceResponse(PaymentSucceeded)
-              }
+      .receive[Message](
+        (context, msg) =>
+          msg match {
+            case DoPayment =>
+              val paymentServiceAdapter: ActorRef[PaymentService.Response] =
+                context.messageAdapter {
+                  case PaymentSucceeded =>
+                    WrappedPaymentServiceResponse(PaymentSucceeded)
+                }
 
-            val supervisedPaymentService = Behaviors.supervise(PaymentService(method, paymentServiceAdapter))
-              .onFailure[PaymentService.PaymentServerError](restartStrategy)
-            val paymentService = context.spawn(supervisedPaymentService, "paymentService")
-            context.watch(paymentService)
-            Behaviors.same
+              val supervisedPaymentService = Behaviors
+                .supervise(PaymentService(method, paymentServiceAdapter))
+                .onFailure[PaymentService.PaymentServerError](restartStrategy)
+              val paymentService = context.spawn(supervisedPaymentService, "paymentService")
+              context.watch(paymentService)
+              Behaviors.same
 
-          case WrappedPaymentServiceResponse(PaymentSucceeded) =>
-            orderManager ! PaymentReceived
-            checkout ! TypedCheckout.ConfirmPaymentReceived
-            Behaviors.stopped
+            case WrappedPaymentServiceResponse(PaymentSucceeded) =>
+              orderManager ! PaymentReceived
+              checkout ! TypedCheckout.ConfirmPaymentReceived
+              Behaviors.stopped
         }
       )
       .receiveSignal {
